@@ -155,6 +155,20 @@ export default class Platformer extends Phaser.Scene {
             on:false
         }).setDepth(-1).stop();
 
+        /* jump 파티클 : 점프 순간 발밑에서 “퍽” 하고 아래로 떨어지는 먼지 */
+        this.my.vfx.jump = this.add.particles(0, 0, 'kenny-particles', {
+            frame      : ['smoke_02.png'],
+            scale      : { start: 0.04, end: 0.01 },
+            lifespan   : 350,
+            alpha      : { start: 1, end: 0.1 },
+            speedY     : { min: 120, max: 220 },   // ⬇︎ 아래 방향
+            speedX     : { min: -30, max: 30 },
+            gravityY   : 0,
+            quantity   : 1,
+            on         : false                     // 수동 발사
+        }).setDepth(0).stop();                           // 타일/플레이어보다 뒤
+
+
         this.my.vfx.hit = this.add.particles(0,0,'player',{
             frame:'monochrome-transparent-5.png',
             lifespan:{min:200,max:500},
@@ -247,10 +261,27 @@ export default class Platformer extends Phaser.Scene {
         if(!on && jump){
             if(left)  p.setVelocityY(this.JUMP_VELOCITY).setVelocityX( 150);
             if(right) p.setVelocityY(this.JUMP_VELOCITY).setVelocityX(-150);
+            this.sound.play('jump');
+            const offsetX = p.flipX               // 캐릭터가 보는 방향에 맞춰
+              ?  p.displayWidth / 2 - 10   // ← 왼쪽 바라볼 때
+              : -p.displayWidth / 2 + 10;  // → 오른쪽 바라볼 때
+
+            this.my.vfx.jump.emitParticleAt(
+                p.x + offsetX,                    // X 좌표
+                p.y + p.displayHeight / 2 + 2     // Y = 발 아래
+            );
         }
         if(on && jump){
             p.setVelocityY(this.JUMP_VELOCITY);
             this.sound.play('jump');
+            const offsetX = p.flipX               // 캐릭터가 보는 방향에 맞춰
+              ?  p.displayWidth / 2 - 10   // ← 왼쪽 바라볼 때
+              : -p.displayWidth / 2 + 10;  // → 오른쪽 바라볼 때
+
+            this.my.vfx.jump.emitParticleAt(
+                p.x + offsetX,                    // X 좌표
+                p.y + p.displayHeight / 2 + 2     // Y = 발 아래
+            );
         }
         if(!on) p.anims.stop();
 
